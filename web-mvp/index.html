@@ -510,20 +510,20 @@
         <header class="header">
             <div class="logo">💡</div>
             <h1 class="title">Aha! Catcher</h1>
-            <p class="subtitle">一键捕捉灵感，AI 自动整理</p>
+            <p class="subtitle">Capture fleeting ideas with one click, AI-powered organization</p>
         </header>
 
         <!-- API Key Input -->
         <div class="api-key-section">
             <label class="api-key-label" for="apiKey">🔑 API Key (AI Builder Token)</label>
-            <input type="password" id="apiKey" class="api-key-input" placeholder="输入你的 AI Builder API Key..."
+            <input type="password" id="apiKey" class="api-key-input" placeholder="Enter your AI Builder API Key..."
                 autocomplete="off">
         </div>
 
         <!-- Status Bar -->
         <div class="status-bar">
             <div class="status-dot" id="statusDot"></div>
-            <span class="status-text" id="statusText">点击按钮开始录音</span>
+            <span class="status-text" id="statusText">Click button to start recording</span>
         </div>
 
         <!-- Audio Visualizer -->
@@ -534,7 +534,7 @@
         <!-- Buffer Info -->
         <div class="buffer-info">
             <div class="buffer-time" id="bufferTime">00:00</div>
-            <div>缓冲区时长（最大 30 秒）</div>
+            <div>Buffer duration (max 30 seconds)</div>
         </div>
 
         <!-- Capture Button -->
@@ -542,7 +542,7 @@
             <div class="capture-btn-glow"></div>
             <button class="capture-btn" id="captureBtn" disabled>
                 <span class="icon">🎤</span>
-                <span class="label">开始录音</span>
+                <span class="label">Start Recording</span>
             </button>
         </div>
 
@@ -553,18 +553,18 @@
         <div class="result-card" id="resultCard">
             <div class="result-header">
                 <span class="icon">✨</span>
-                <span class="title">捕获结果</span>
+                <span class="title">Capture Result</span>
             </div>
 
             <div class="result-section">
-                <div class="result-label">📝 转录文本</div>
+                <div class="result-label">📝 Transcription</div>
                 <div class="result-content transcription" id="transcriptionText">
-                    加载中...
+                    Loading...
                 </div>
             </div>
 
             <div class="result-section">
-                <div class="result-label">🔍 AI 研究摘要</div>
+                <div class="result-label">🔍 AI Research Summary</div>
                 <div class="result-content research" id="researchText">
                     加载中...
                 </div>
@@ -575,7 +575,7 @@
         <details class="debug-panel" style="width: 100%; margin-top: var(--spacing-lg);">
             <summary
                 style="cursor: pointer; padding: var(--spacing-sm); background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); color: var(--text-secondary); font-size: 0.85rem;">
-                🔧 调试日志 (点击展开)
+                🔧 Debug Log (Click to expand)
             </summary>
             <pre id="debugLog"
                 style="margin-top: var(--spacing-xs); padding: var(--spacing-md); background: #1a1a2e; border: 1px solid var(--border-color); border-radius: var(--radius-md); color: #10b981; font-size: 0.75rem; font-family: 'Consolas', monospace; max-height: 300px; overflow-y: auto; white-space: pre-wrap; word-break: break-all;"></pre>
@@ -654,7 +654,7 @@
         // Initialization
         // ============================================
         function init() {
-            debugLog('🚀 初始化 Aha! Catcher...');
+            debugLog('🚀 Initializing Aha! Catcher...');
             debugLog('📡 API Base URL: ' + CONFIG.API_BASE_URL);
             debugLog('🔑 API Key: ' + CONFIG.API_KEY.substring(0, 15) + '...');
 
@@ -666,16 +666,16 @@
                 elements.visualizer.appendChild(bar);
             }
 
-            // 预填充 API Key（仅用于显示，实际使用硬编码的）
+            // Pre-fill API Key for display only
             elements.apiKeyInput.value = CONFIG.API_KEY;
-            elements.apiKeyInput.disabled = true; // 禁用输入框
+            elements.apiKeyInput.disabled = true; // Disable input field
 
             // Enable button
             elements.captureBtn.disabled = false;
             elements.captureBtn.addEventListener('click', handleCaptureClick);
 
-            updateStatus('idle', '点击按钮开始录音');
-            debugLog('✅ 初始化完成');
+            updateStatus('idle', 'Click button to start recording');
+            debugLog('✅ Initialization complete');
         }
 
         // ============================================
@@ -704,7 +704,7 @@
             debugLog('❌ Error: ' + message);
             elements.errorMessage.textContent = message;
             elements.errorMessage.classList.add('visible');
-            updateStatus('error', '发生错误');
+            updateStatus('error', 'Error occurred');
 
             setTimeout(() => {
                 elements.errorMessage.classList.remove('visible');
@@ -757,14 +757,14 @@
                 state.mediaRecorder.start(1000);
                 state.isRecording = true;
 
-                updateStatus('recording', '正在录音...');
+                updateStatus('recording', 'Recording...');
                 updateButtonState('recording');
                 startVisualization();
                 updateBufferTime();
 
             } catch (error) {
                 console.error('Error starting recording:', error);
-                showError('无法访问麦克风，请检查权限设置');
+                showError('Cannot access microphone, please check permissions');
             }
         }
 
@@ -787,51 +787,51 @@
         }
 
         async function captureAndProcess() {
-            debugLog('🎯 开始捕捉并处理...');
+            debugLog('🎯 Starting capture and process...');
 
             if (!state.isRecording || state.audioChunks.length === 0) {
-                showError('没有可用的音频数据');
+                showError('No audio data available');
                 return;
             }
 
-            debugLog(`📦 音频块数量: ${state.audioChunks.length}`);
+            debugLog(`📦 Audio chunks: ${state.audioChunks.length}`);
 
             state.isProcessing = true;
-            updateStatus('processing', '正在处理...');
+            updateStatus('processing', 'Processing...');
             updateButtonState('processing');
 
             try {
                 // Create audio blob from chunks
                 const audioBlob = new Blob(state.audioChunks, { type: 'audio/webm' });
-                debugLog(`🎵 音频 Blob 大小: ${(audioBlob.size / 1024).toFixed(2)} KB`);
+                debugLog(`🎵 Audio Blob size: ${(audioBlob.size / 1024).toFixed(2)} KB`);
 
                 // Step 1: Transcribe audio
-                updateStatus('processing', '正在转录音频...');
+                updateStatus('processing', 'Transcribing audio...');
                 const transcription = await transcribeAudio(audioBlob);
 
                 if (!transcription) {
-                    throw new Error('转录失败 - 返回空结果');
+                    throw new Error('Transcription failed - empty result');
                 }
 
-                debugLog('📝 转录成功: ' + transcription.substring(0, 100) + '...');
+                debugLog('📝 Transcription successful: ' + transcription.substring(0, 100) + '...');
 
                 // Show transcription immediately
                 elements.resultCard.classList.add('visible');
                 elements.transcriptionText.textContent = transcription;
-                elements.researchText.textContent = '正在生成研究摘要...';
+                elements.researchText.textContent = 'Generating research summary...';
 
                 // Step 2: Generate research summary
-                updateStatus('processing', '正在生成研究摘要...');
+                updateStatus('processing', 'Generating research summary...');
                 const research = await generateResearch(transcription);
 
                 elements.researchText.textContent = research;
-                updateStatus('idle', '处理完成！');
-                debugLog('✅ 全部处理完成！');
+                updateStatus('idle', 'Processing complete!');
+                debugLog('✅ All processing complete!');
 
             } catch (error) {
                 console.error('Processing error:', error);
-                debugLog('❌ 处理失败: ' + error.message);
-                showError(error.message || '处理失败，请重试');
+                debugLog('❌ Processing failed: ' + error.message);
+                showError(error.message || 'Processing failed, please try again');
             } finally {
                 state.isProcessing = false;
                 updateButtonState('recording');
@@ -839,17 +839,17 @@
         }
 
         // ============================================
-        // API Calls - 使用硬编码的 CONFIG.API_KEY
+        // API Calls - Using CONFIG.API_KEY
         // ============================================
         async function transcribeAudio(audioBlob) {
             const url = `${CONFIG.API_BASE_URL}/v1/audio/transcriptions`;
-            debugLog('📡 调用转录 API: ' + url);
+            debugLog('📡 Calling transcription API: ' + url);
 
             const formData = new FormData();
             formData.append('audio_file', audioBlob, 'recording.webm');
-            formData.append('language', 'zh-CN');
+            formData.append('language', 'en-US');
 
-            debugLog('🔑 使用 API Key: ' + CONFIG.API_KEY.substring(0, 20) + '...');
+            debugLog('🔑 Using API Key: ' + CONFIG.API_KEY.substring(0, 20) + '...');
 
             try {
                 const response = await fetch(url, {
@@ -860,48 +860,48 @@
                     body: formData,
                 });
 
-                debugLog(`📬 转录响应状态: ${response.status} ${response.statusText}`);
+                debugLog(`📬 Transcription response status: ${response.status} ${response.statusText}`);
 
                 if (!response.ok) {
                     const errorText = await response.text();
-                    debugLog('❌ 转录 API 错误响应: ' + errorText);
+                    debugLog('❌ Transcription API error response: ' + errorText);
 
-                    let errorMessage = '转录请求失败';
+                    let errorMessage = 'Transcription request failed';
                     try {
                         const errorJson = JSON.parse(errorText);
                         errorMessage = errorJson.detail || errorJson.message || errorMessage;
                     } catch (e) {
                         errorMessage = errorText || errorMessage;
                     }
-                    throw new Error(`转录失败 (${response.status}): ${errorMessage}`);
+                    throw new Error(`Transcription failed (${response.status}): ${errorMessage}`);
                 }
 
                 const data = await response.json();
-                debugLog('✅ 转录 API 响应成功', data);
+                debugLog('✅ Transcription API response successful', data);
                 return data.text;
 
             } catch (error) {
-                debugLog('❌ 转录请求异常: ' + error.message);
+                debugLog('❌ Transcription request exception: ' + error.message);
                 throw error;
             }
         }
 
         async function generateResearch(transcription) {
             const url = `${CONFIG.API_BASE_URL}/v1/chat/completions`;
-            debugLog('📡 调用 Chat API: ' + url);
+            debugLog('📡 Calling Chat API: ' + url);
 
-            const prompt = `你是一个智能助手，专门帮助用户整理和拓展他们的灵感。
+            const prompt = `You are an intelligent assistant specialized in helping users organize and expand their ideas.
 
-用户刚刚捕捉到一个"Aha!"时刻，以下是他们说的话：
+The user just captured an "Aha!" moment. Here's what they said:
 
 "${transcription}"
 
-请完成以下任务：
-1. **核心洞察**：用一句话总结这个想法的核心要点
-2. **相关背景**：提供 2-3 个与这个想法相关的有用信息点或背景知识
-3. **可能的下一步**：建议 2-3 个可以进一步探索的方向或行动
+Please complete the following tasks:
+1. **Core Insight**: Summarize the core idea in one sentence
+2. **Related Context**: Provide 2-3 useful information points or background knowledge related to this idea
+3. **Possible Next Steps**: Suggest 2-3 directions or actions for further exploration
 
-请用简洁清晰的格式回复，使用中文。`;
+Please respond in a clear and concise format.`;
 
             const requestBody = {
                 model: 'supermind-agent-v1',
@@ -912,7 +912,7 @@
                 max_tokens: 1000,
             };
 
-            debugLog('📤 Chat 请求体:', { model: requestBody.model, temperature: requestBody.temperature });
+            debugLog('📤 Chat request body:', { model: requestBody.model, temperature: requestBody.temperature });
 
             try {
                 const response = await fetch(url, {
@@ -924,31 +924,31 @@
                     body: JSON.stringify(requestBody),
                 });
 
-                debugLog(`📬 Chat 响应状态: ${response.status} ${response.statusText}`);
+                debugLog(`📬 Chat response status: ${response.status} ${response.statusText}`);
 
                 if (!response.ok) {
                     const errorText = await response.text();
-                    debugLog('❌ Chat API 错误响应: ' + errorText);
+                    debugLog('❌ Chat API error response: ' + errorText);
 
-                    let errorMessage = '研究生成请求失败';
+                    let errorMessage = 'Research generation request failed';
                     try {
                         const errorJson = JSON.parse(errorText);
                         errorMessage = errorJson.detail || errorJson.message || errorMessage;
                     } catch (e) {
                         errorMessage = errorText || errorMessage;
                     }
-                    throw new Error(`AI 分析失败 (${response.status}): ${errorMessage}`);
+                    throw new Error(`AI analysis failed (${response.status}): ${errorMessage}`);
                 }
 
                 const data = await response.json();
-                debugLog('✅ Chat API 响应成功', {
+                debugLog('✅ Chat API response successful', {
                     model: data.model,
                     usage: data.usage
                 });
                 return data.choices[0].message.content;
 
             } catch (error) {
-                debugLog('❌ Chat 请求异常: ' + error.message);
+                debugLog('❌ Chat request exception: ' + error.message);
                 throw error;
             }
         }
@@ -964,14 +964,14 @@
                 case 'idle':
                     btn.innerHTML = `
                         <span class="icon">🎤</span>
-                        <span class="label">开始录音</span>
+                        <span class="label">Start Recording</span>
                     `;
                     btn.disabled = false;
                     break;
                 case 'recording':
                     btn.innerHTML = `
                         <span class="icon">✨</span>
-                        <span class="label">捕捉 Aha!</span>
+                        <span class="label">Capture Aha!</span>
                     `;
                     btn.disabled = false;
                     break;
@@ -979,7 +979,7 @@
                     btn.classList.add('processing');
                     btn.innerHTML = `
                         <span class="icon">⏳</span>
-                        <span class="label">处理中...</span>
+                        <span class="label">Processing...</span>
                     `;
                     btn.disabled = true;
                     break;
