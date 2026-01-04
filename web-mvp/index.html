@@ -1,0 +1,1061 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>💡 Aha! Catcher - 捕捉灵感</title>
+    <meta name="description" content="一键捕捉你的灵感瞬间，AI 自动转录并生成研究摘要">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            /* Color Palette - Modern Dark Theme */
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-card: rgba(255, 255, 255, 0.03);
+            --bg-card-hover: rgba(255, 255, 255, 0.06);
+
+            --accent-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            --accent-primary: #667eea;
+            --accent-secondary: #764ba2;
+            --accent-glow: rgba(102, 126, 234, 0.4);
+
+            --text-primary: #ffffff;
+            --text-secondary: rgba(255, 255, 255, 0.7);
+            --text-muted: rgba(255, 255, 255, 0.4);
+
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+
+            --border-color: rgba(255, 255, 255, 0.08);
+            --border-glow: rgba(102, 126, 234, 0.3);
+
+            /* Spacing */
+            --spacing-xs: 0.5rem;
+            --spacing-sm: 1rem;
+            --spacing-md: 1.5rem;
+            --spacing-lg: 2rem;
+            --spacing-xl: 3rem;
+
+            /* Border Radius */
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 20px;
+            --radius-full: 9999px;
+
+            /* Transitions */
+            --transition-fast: 150ms ease;
+            --transition-normal: 250ms ease;
+            --transition-slow: 400ms ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+        }
+
+        /* Animated Background */
+        .bg-gradient {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background:
+                radial-gradient(ellipse 80% 50% at 50% -20%, rgba(102, 126, 234, 0.15), transparent),
+                radial-gradient(ellipse 60% 40% at 100% 100%, rgba(118, 75, 162, 0.1), transparent),
+                radial-gradient(ellipse 40% 30% at 0% 100%, rgba(240, 147, 251, 0.08), transparent);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Main Container */
+        .container {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 600px;
+            padding: var(--spacing-lg);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: var(--spacing-xl);
+            margin-top: var(--spacing-xl);
+        }
+
+        .logo {
+            font-size: 4rem;
+            margin-bottom: var(--spacing-sm);
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        .title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            font-weight: 400;
+        }
+
+        /* Status Indicator */
+        .status-bar {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            padding: var(--spacing-sm) var(--spacing-md);
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-full);
+            margin-bottom: var(--spacing-lg);
+            backdrop-filter: blur(10px);
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--text-muted);
+            transition: var(--transition-normal);
+        }
+
+        .status-dot.recording {
+            background: var(--success);
+            box-shadow: 0 0 10px var(--success);
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        .status-dot.processing {
+            background: var(--warning);
+            box-shadow: 0 0 10px var(--warning);
+            animation: pulse 0.8s ease-in-out infinite;
+        }
+
+        .status-dot.error {
+            background: var(--error);
+            box-shadow: 0 0 10px var(--error);
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 0.6;
+                transform: scale(1.1);
+            }
+        }
+
+        .status-text {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        /* Capture Button */
+        .capture-btn-wrapper {
+            position: relative;
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .capture-btn-glow {
+            position: absolute;
+            inset: -4px;
+            background: var(--accent-gradient);
+            border-radius: var(--radius-lg);
+            opacity: 0;
+            filter: blur(20px);
+            transition: var(--transition-slow);
+            z-index: -1;
+        }
+
+        .capture-btn-wrapper:hover .capture-btn-glow,
+        .capture-btn-wrapper:focus-within .capture-btn-glow {
+            opacity: 0.5;
+        }
+
+        .capture-btn {
+            position: relative;
+            width: 220px;
+            height: 220px;
+            border-radius: 50%;
+            border: none;
+            background: var(--accent-gradient);
+            color: white;
+            font-family: inherit;
+            font-size: 1.4rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: var(--spacing-xs);
+            transition: var(--transition-normal);
+            box-shadow:
+                0 10px 40px rgba(102, 126, 234, 0.3),
+                0 0 0 1px rgba(255, 255, 255, 0.1) inset;
+        }
+
+        .capture-btn:hover {
+            transform: scale(1.05);
+            box-shadow:
+                0 15px 50px rgba(102, 126, 234, 0.4),
+                0 0 0 1px rgba(255, 255, 255, 0.2) inset;
+        }
+
+        .capture-btn:active {
+            transform: scale(0.98);
+        }
+
+        .capture-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .capture-btn .icon {
+            font-size: 3rem;
+            transition: var(--transition-normal);
+        }
+
+        .capture-btn.processing .icon {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .capture-btn .label {
+            font-size: 1.2rem;
+        }
+
+        /* Audio Visualizer */
+        .visualizer {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            height: 40px;
+            margin-bottom: var(--spacing-md);
+        }
+
+        .visualizer-bar {
+            width: 4px;
+            background: var(--accent-gradient);
+            border-radius: var(--radius-full);
+            transition: height 100ms ease;
+        }
+
+        /* Buffer Info */
+        .buffer-info {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .buffer-time {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* Result Card */
+        .result-card {
+            width: 100%;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-lg);
+            backdrop-filter: blur(10px);
+            animation: slideUp 0.4s ease;
+            display: none;
+        }
+
+        .result-card.visible {
+            display: block;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result-header {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-md);
+            padding-bottom: var(--spacing-md);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .result-header .icon {
+            font-size: 1.5rem;
+        }
+
+        .result-header .title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            background: none;
+            -webkit-text-fill-color: var(--text-primary);
+        }
+
+        .result-section {
+            margin-bottom: var(--spacing-md);
+        }
+
+        .result-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .result-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .result-content {
+            font-size: 1rem;
+            line-height: 1.6;
+            color: var(--text-secondary);
+        }
+
+        .result-content.transcription {
+            background: rgba(102, 126, 234, 0.1);
+            border-left: 3px solid var(--accent-primary);
+            padding: var(--spacing-sm) var(--spacing-md);
+            border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+            font-style: italic;
+        }
+
+        .result-content.research {
+            white-space: pre-wrap;
+        }
+
+        /* API Key Input */
+        .api-key-section {
+            width: 100%;
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .api-key-input {
+            width: 100%;
+            padding: var(--spacing-sm) var(--spacing-md);
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 0.9rem;
+            transition: var(--transition-normal);
+        }
+
+        .api-key-input:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+
+        .api-key-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .api-key-label {
+            display: block;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: var(--spacing-xs);
+        }
+
+        /* Error Message */
+        .error-message {
+            width: 100%;
+            padding: var(--spacing-md);
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: var(--radius-md);
+            color: var(--error);
+            font-size: 0.9rem;
+            margin-bottom: var(--spacing-md);
+            display: none;
+        }
+
+        .error-message.visible {
+            display: block;
+            animation: shake 0.4s ease;
+        }
+
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            25% {
+                transform: translateX(-5px);
+            }
+
+            75% {
+                transform: translateX(5px);
+            }
+        }
+
+        /* Footer */
+        .footer {
+            margin-top: auto;
+            padding: var(--spacing-lg);
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .container {
+                padding: var(--spacing-md);
+            }
+
+            .title {
+                font-size: 2rem;
+            }
+
+            .capture-btn {
+                width: 180px;
+                height: 180px;
+            }
+
+            .capture-btn .icon {
+                font-size: 2.5rem;
+            }
+
+            .capture-btn .label {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="bg-gradient"></div>
+
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">💡</div>
+            <h1 class="title">Aha! Catcher</h1>
+            <p class="subtitle">一键捕捉灵感，AI 自动整理</p>
+        </header>
+
+        <!-- API Key Input -->
+        <div class="api-key-section">
+            <label class="api-key-label" for="apiKey">🔑 API Key (AI Builder Token)</label>
+            <input type="password" id="apiKey" class="api-key-input" placeholder="输入你的 AI Builder API Key..."
+                autocomplete="off">
+        </div>
+
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <div class="status-dot" id="statusDot"></div>
+            <span class="status-text" id="statusText">点击按钮开始录音</span>
+        </div>
+
+        <!-- Audio Visualizer -->
+        <div class="visualizer" id="visualizer">
+            <!-- Bars will be generated by JS -->
+        </div>
+
+        <!-- Buffer Info -->
+        <div class="buffer-info">
+            <div class="buffer-time" id="bufferTime">00:00</div>
+            <div>缓冲区时长（最大 30 秒）</div>
+        </div>
+
+        <!-- Capture Button -->
+        <div class="capture-btn-wrapper">
+            <div class="capture-btn-glow"></div>
+            <button class="capture-btn" id="captureBtn" disabled>
+                <span class="icon">🎤</span>
+                <span class="label">开始录音</span>
+            </button>
+        </div>
+
+        <!-- Error Message -->
+        <div class="error-message" id="errorMessage"></div>
+
+        <!-- Result Card -->
+        <div class="result-card" id="resultCard">
+            <div class="result-header">
+                <span class="icon">✨</span>
+                <span class="title">捕获结果</span>
+            </div>
+
+            <div class="result-section">
+                <div class="result-label">📝 转录文本</div>
+                <div class="result-content transcription" id="transcriptionText">
+                    加载中...
+                </div>
+            </div>
+
+            <div class="result-section">
+                <div class="result-label">🔍 AI 研究摘要</div>
+                <div class="result-content research" id="researchText">
+                    加载中...
+                </div>
+            </div>
+        </div>
+
+        <!-- Debug Log Panel -->
+        <details class="debug-panel" style="width: 100%; margin-top: var(--spacing-lg);">
+            <summary
+                style="cursor: pointer; padding: var(--spacing-sm); background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); color: var(--text-secondary); font-size: 0.85rem;">
+                🔧 调试日志 (点击展开)
+            </summary>
+            <pre id="debugLog"
+                style="margin-top: var(--spacing-xs); padding: var(--spacing-md); background: #1a1a2e; border: 1px solid var(--border-color); border-radius: var(--radius-md); color: #10b981; font-size: 0.75rem; font-family: 'Consolas', monospace; max-height: 300px; overflow-y: auto; white-space: pre-wrap; word-break: break-all;"></pre>
+        </details>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>Powered by AI Builder Platform</p>
+        </footer>
+    </div>
+
+    <script>
+        // ============================================
+        // Configuration
+        // ============================================
+        const CONFIG = {
+            // 使用本地代理服务器绕过 CORS 限制
+            // 代理服务器会将 /backend/* 转发到 space.ai-builders.com/backend/*
+            API_BASE_URL: '/backend',
+
+            // ⚠️ 请在下方填入你的 AI Builder API Key
+            // 从 https://space.ai-builders.com/ 获取
+            API_KEY: '', // 👈 在这里填入你的 API Key
+
+            BUFFER_DURATION: 30, // seconds
+            SAMPLE_RATE: 16000,  // 16kHz for speech
+            VISUALIZER_BARS: 20,
+        };
+
+        // ============================================
+        // State
+        // ============================================
+        let state = {
+            isRecording: false,
+            isProcessing: false,
+            mediaRecorder: null,
+            audioContext: null,
+            analyser: null,
+            audioChunks: [],
+            recordingStartTime: null,
+            stream: null,
+        };
+
+        // ============================================
+        // DOM Elements
+        // ============================================
+        const elements = {
+            captureBtn: document.getElementById('captureBtn'),
+            statusDot: document.getElementById('statusDot'),
+            statusText: document.getElementById('statusText'),
+            bufferTime: document.getElementById('bufferTime'),
+            visualizer: document.getElementById('visualizer'),
+            resultCard: document.getElementById('resultCard'),
+            transcriptionText: document.getElementById('transcriptionText'),
+            researchText: document.getElementById('researchText'),
+            errorMessage: document.getElementById('errorMessage'),
+            apiKeyInput: document.getElementById('apiKey'),
+            debugLog: document.getElementById('debugLog'),
+        };
+
+        // ============================================
+        // Debug Logging
+        // ============================================
+        function debugLog(message, data = null) {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] ${message}`;
+            console.log(logEntry, data || '');
+
+            if (elements.debugLog) {
+                elements.debugLog.textContent += logEntry + (data ? ` ${JSON.stringify(data, null, 2)}` : '') + '\n';
+                elements.debugLog.scrollTop = elements.debugLog.scrollHeight;
+            }
+        }
+
+        // ============================================
+        // Initialization
+        // ============================================
+        function init() {
+            debugLog('🚀 初始化 Aha! Catcher...');
+            debugLog('📡 API Base URL: ' + CONFIG.API_BASE_URL);
+            debugLog('🔑 API Key: ' + CONFIG.API_KEY.substring(0, 15) + '...');
+
+            // Create visualizer bars
+            for (let i = 0; i < CONFIG.VISUALIZER_BARS; i++) {
+                const bar = document.createElement('div');
+                bar.className = 'visualizer-bar';
+                bar.style.height = '4px';
+                elements.visualizer.appendChild(bar);
+            }
+
+            // 预填充 API Key（仅用于显示，实际使用硬编码的）
+            elements.apiKeyInput.value = CONFIG.API_KEY;
+            elements.apiKeyInput.disabled = true; // 禁用输入框
+
+            // Enable button
+            elements.captureBtn.disabled = false;
+            elements.captureBtn.addEventListener('click', handleCaptureClick);
+
+            updateStatus('idle', '点击按钮开始录音');
+            debugLog('✅ 初始化完成');
+        }
+
+        // ============================================
+        // Status Updates
+        // ============================================
+        function updateStatus(status, text) {
+            elements.statusDot.className = 'status-dot';
+
+            switch (status) {
+                case 'recording':
+                    elements.statusDot.classList.add('recording');
+                    break;
+                case 'processing':
+                    elements.statusDot.classList.add('processing');
+                    break;
+                case 'error':
+                    elements.statusDot.classList.add('error');
+                    break;
+            }
+
+            elements.statusText.textContent = text;
+            debugLog('📊 Status: ' + status + ' - ' + text);
+        }
+
+        function showError(message) {
+            debugLog('❌ Error: ' + message);
+            elements.errorMessage.textContent = message;
+            elements.errorMessage.classList.add('visible');
+            updateStatus('error', '发生错误');
+
+            setTimeout(() => {
+                elements.errorMessage.classList.remove('visible');
+            }, 8000);
+        }
+
+        // ============================================
+        // Audio Recording
+        // ============================================
+        async function startRecording() {
+            try {
+                // Request microphone access
+                state.stream = await navigator.mediaDevices.getUserMedia({
+                    audio: {
+                        sampleRate: CONFIG.SAMPLE_RATE,
+                        channelCount: 1,
+                        echoCancellation: true,
+                        noiseSuppression: true,
+                    }
+                });
+
+                // Create audio context for visualization
+                state.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const source = state.audioContext.createMediaStreamSource(state.stream);
+                state.analyser = state.audioContext.createAnalyser();
+                state.analyser.fftSize = 64;
+                source.connect(state.analyser);
+
+                // Create MediaRecorder
+                state.mediaRecorder = new MediaRecorder(state.stream, {
+                    mimeType: 'audio/webm;codecs=opus'
+                });
+
+                state.audioChunks = [];
+                state.recordingStartTime = Date.now();
+
+                state.mediaRecorder.ondataavailable = (event) => {
+                    if (event.data.size > 0) {
+                        state.audioChunks.push(event.data);
+
+                        // Keep only last 30 seconds worth of chunks
+                        // Each chunk is roughly 1 second (timeslice = 1000)
+                        if (state.audioChunks.length > CONFIG.BUFFER_DURATION) {
+                            state.audioChunks.shift();
+                        }
+                    }
+                };
+
+                // Request data every second for rolling buffer
+                state.mediaRecorder.start(1000);
+                state.isRecording = true;
+
+                updateStatus('recording', '正在录音...');
+                updateButtonState('recording');
+                startVisualization();
+                updateBufferTime();
+
+            } catch (error) {
+                console.error('Error starting recording:', error);
+                showError('无法访问麦克风，请检查权限设置');
+            }
+        }
+
+        function stopRecording() {
+            if (state.mediaRecorder && state.isRecording) {
+                state.mediaRecorder.stop();
+                state.isRecording = false;
+
+                if (state.stream) {
+                    state.stream.getTracks().forEach(track => track.stop());
+                }
+
+                if (state.audioContext) {
+                    state.audioContext.close();
+                }
+
+                updateButtonState('idle');
+                resetVisualization();
+            }
+        }
+
+        async function captureAndProcess() {
+            debugLog('🎯 开始捕捉并处理...');
+
+            if (!state.isRecording || state.audioChunks.length === 0) {
+                showError('没有可用的音频数据');
+                return;
+            }
+
+            debugLog(`📦 音频块数量: ${state.audioChunks.length}`);
+
+            state.isProcessing = true;
+            updateStatus('processing', '正在处理...');
+            updateButtonState('processing');
+
+            try {
+                // Create audio blob from chunks
+                const audioBlob = new Blob(state.audioChunks, { type: 'audio/webm' });
+                debugLog(`🎵 音频 Blob 大小: ${(audioBlob.size / 1024).toFixed(2)} KB`);
+
+                // Step 1: Transcribe audio
+                updateStatus('processing', '正在转录音频...');
+                const transcription = await transcribeAudio(audioBlob);
+
+                if (!transcription) {
+                    throw new Error('转录失败 - 返回空结果');
+                }
+
+                debugLog('📝 转录成功: ' + transcription.substring(0, 100) + '...');
+
+                // Show transcription immediately
+                elements.resultCard.classList.add('visible');
+                elements.transcriptionText.textContent = transcription;
+                elements.researchText.textContent = '正在生成研究摘要...';
+
+                // Step 2: Generate research summary
+                updateStatus('processing', '正在生成研究摘要...');
+                const research = await generateResearch(transcription);
+
+                elements.researchText.textContent = research;
+                updateStatus('idle', '处理完成！');
+                debugLog('✅ 全部处理完成！');
+
+            } catch (error) {
+                console.error('Processing error:', error);
+                debugLog('❌ 处理失败: ' + error.message);
+                showError(error.message || '处理失败，请重试');
+            } finally {
+                state.isProcessing = false;
+                updateButtonState('recording');
+            }
+        }
+
+        // ============================================
+        // API Calls - 使用硬编码的 CONFIG.API_KEY
+        // ============================================
+        async function transcribeAudio(audioBlob) {
+            const url = `${CONFIG.API_BASE_URL}/v1/audio/transcriptions`;
+            debugLog('📡 调用转录 API: ' + url);
+
+            const formData = new FormData();
+            formData.append('audio_file', audioBlob, 'recording.webm');
+            formData.append('language', 'zh-CN');
+
+            debugLog('🔑 使用 API Key: ' + CONFIG.API_KEY.substring(0, 20) + '...');
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${CONFIG.API_KEY}`,
+                    },
+                    body: formData,
+                });
+
+                debugLog(`📬 转录响应状态: ${response.status} ${response.statusText}`);
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    debugLog('❌ 转录 API 错误响应: ' + errorText);
+
+                    let errorMessage = '转录请求失败';
+                    try {
+                        const errorJson = JSON.parse(errorText);
+                        errorMessage = errorJson.detail || errorJson.message || errorMessage;
+                    } catch (e) {
+                        errorMessage = errorText || errorMessage;
+                    }
+                    throw new Error(`转录失败 (${response.status}): ${errorMessage}`);
+                }
+
+                const data = await response.json();
+                debugLog('✅ 转录 API 响应成功', data);
+                return data.text;
+
+            } catch (error) {
+                debugLog('❌ 转录请求异常: ' + error.message);
+                throw error;
+            }
+        }
+
+        async function generateResearch(transcription) {
+            const url = `${CONFIG.API_BASE_URL}/v1/chat/completions`;
+            debugLog('📡 调用 Chat API: ' + url);
+
+            const prompt = `你是一个智能助手，专门帮助用户整理和拓展他们的灵感。
+
+用户刚刚捕捉到一个"Aha!"时刻，以下是他们说的话：
+
+"${transcription}"
+
+请完成以下任务：
+1. **核心洞察**：用一句话总结这个想法的核心要点
+2. **相关背景**：提供 2-3 个与这个想法相关的有用信息点或背景知识
+3. **可能的下一步**：建议 2-3 个可以进一步探索的方向或行动
+
+请用简洁清晰的格式回复，使用中文。`;
+
+            const requestBody = {
+                model: 'supermind-agent-v1',
+                messages: [
+                    { role: 'user', content: prompt }
+                ],
+                temperature: 0.7,
+                max_tokens: 1000,
+            };
+
+            debugLog('📤 Chat 请求体:', { model: requestBody.model, temperature: requestBody.temperature });
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${CONFIG.API_KEY}`,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestBody),
+                });
+
+                debugLog(`📬 Chat 响应状态: ${response.status} ${response.statusText}`);
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    debugLog('❌ Chat API 错误响应: ' + errorText);
+
+                    let errorMessage = '研究生成请求失败';
+                    try {
+                        const errorJson = JSON.parse(errorText);
+                        errorMessage = errorJson.detail || errorJson.message || errorMessage;
+                    } catch (e) {
+                        errorMessage = errorText || errorMessage;
+                    }
+                    throw new Error(`AI 分析失败 (${response.status}): ${errorMessage}`);
+                }
+
+                const data = await response.json();
+                debugLog('✅ Chat API 响应成功', {
+                    model: data.model,
+                    usage: data.usage
+                });
+                return data.choices[0].message.content;
+
+            } catch (error) {
+                debugLog('❌ Chat 请求异常: ' + error.message);
+                throw error;
+            }
+        }
+
+        // ============================================
+        // UI Updates
+        // ============================================
+        function updateButtonState(status) {
+            const btn = elements.captureBtn;
+            btn.classList.remove('processing');
+
+            switch (status) {
+                case 'idle':
+                    btn.innerHTML = `
+                        <span class="icon">🎤</span>
+                        <span class="label">开始录音</span>
+                    `;
+                    btn.disabled = false;
+                    break;
+                case 'recording':
+                    btn.innerHTML = `
+                        <span class="icon">✨</span>
+                        <span class="label">捕捉 Aha!</span>
+                    `;
+                    btn.disabled = false;
+                    break;
+                case 'processing':
+                    btn.classList.add('processing');
+                    btn.innerHTML = `
+                        <span class="icon">⏳</span>
+                        <span class="label">处理中...</span>
+                    `;
+                    btn.disabled = true;
+                    break;
+            }
+        }
+
+        function handleCaptureClick() {
+            if (state.isProcessing) return;
+
+            if (!state.isRecording) {
+                // Start recording
+                startRecording();
+            } else {
+                // Capture and process
+                captureAndProcess();
+            }
+        }
+
+        // ============================================
+        // Visualization
+        // ============================================
+        let animationId = null;
+
+        function startVisualization() {
+            const bars = elements.visualizer.querySelectorAll('.visualizer-bar');
+            const dataArray = new Uint8Array(state.analyser.frequencyBinCount);
+
+            function animate() {
+                if (!state.isRecording) return;
+
+                state.analyser.getByteFrequencyData(dataArray);
+
+                bars.forEach((bar, i) => {
+                    const value = dataArray[i] || 0;
+                    const height = Math.max(4, (value / 255) * 40);
+                    bar.style.height = `${height}px`;
+                });
+
+                animationId = requestAnimationFrame(animate);
+            }
+
+            animate();
+        }
+
+        function resetVisualization() {
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+            }
+
+            const bars = elements.visualizer.querySelectorAll('.visualizer-bar');
+            bars.forEach(bar => {
+                bar.style.height = '4px';
+            });
+        }
+
+        function updateBufferTime() {
+            if (!state.isRecording) return;
+
+            const elapsed = Math.min(
+                Math.floor((Date.now() - state.recordingStartTime) / 1000),
+                CONFIG.BUFFER_DURATION
+            );
+
+            const minutes = Math.floor(elapsed / 60);
+            const seconds = elapsed % 60;
+            elements.bufferTime.textContent =
+                `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+            setTimeout(updateBufferTime, 1000);
+        }
+
+        // ============================================
+        // Start App
+        // ============================================
+        init();
+    </script>
+</body>
+
+</html>
